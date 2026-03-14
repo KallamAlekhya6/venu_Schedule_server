@@ -27,8 +27,22 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://venu-schedule-client-mge6t4lux-kallamalekhya6-hashs-projects.vercel.app',
+  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : [])
+];
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    // and whitelist specific origins or vercel default domains
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS: ' + origin));
+    }
+  },
   credentials: true
 }));
 app.use(helmet());
